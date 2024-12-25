@@ -9,7 +9,7 @@ export default async function Page() {
 
   const [users] = await Promise.all([fetchUsers()]);
 
-  const otherUsers = users.filter((user) => user.id !== session?.user?.id);
+  const otherUsers = users.filter((user) => user?.id !== session?.user?.id);
 
   return (
     <div className="w-full">
