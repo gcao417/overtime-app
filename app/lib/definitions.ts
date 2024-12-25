@@ -82,6 +82,7 @@ export type FormattedCustomersTable = {
 export type UserField = {
   id: string;
   name: string;
+  role: string;
 };
 
 export type OvertimeForm = {
