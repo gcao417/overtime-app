@@ -1,6 +1,9 @@
 // This file contains type definitions for your data.
 // It describes the shape of the data, and what data type each property should accept.
 // For simplicity of teaching, we're manually defining these types.
+
+import { UUID } from "crypto";
+
 // However, these types are generated automatically if you're using an ORM such as Prisma.
 export type User = {
   id: string;
@@ -75,14 +78,25 @@ export type FormattedCustomersTable = {
   total_paid: string;
 };
 
-export type CustomerField = {
+export type UserField = {
   id: string;
   name: string;
 };
 
-export type InvoiceForm = {
+export type OvertimeForm = {
   id: string;
-  customer_id: string;
-  amount: number;
+  user_id: string;
+  creation_timestamp: string;
+  start_time: string;
+  end_time: string;
   status: "pending" | "paid";
+};
+
+export type OvertimeTable = {
+  id: number;
+  user_id: UUID;
+  username: string;
+  creation_timestamp: string;
+  start_time: string;
+  end_time: string;
 };

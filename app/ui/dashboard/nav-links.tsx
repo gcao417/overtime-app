@@ -3,7 +3,8 @@
 import {
   UserGroupIcon,
   HomeIcon,
-  DocumentDuplicateIcon,
+  CheckCircleIcon,
+  ClockIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -14,19 +15,35 @@ import clsx from "clsx";
 const links = [
   { name: "Home", href: "/dashboard", icon: HomeIcon },
   {
-    name: "Invoices",
-    href: "/dashboard/invoices",
-    icon: DocumentDuplicateIcon,
+    name: "Overtimes",
+    href: "/dashboard/overtime",
+    icon: ClockIcon,
   },
-  { name: "Customers", href: "/dashboard/customers", icon: UserGroupIcon },
+  {
+    name: "Approval",
+    href: "/dashboard/approval",
+    icon: CheckCircleIcon,
+  },
+  {
+    name: "Admin Access",
+    href: "/dashboard/admin",
+    icon: UserGroupIcon,
+  },
 ];
 
-export default function NavLinks() {
+export default function NavLinks({ type }: { type: string }) {
   const pathname = usePathname();
+
+  const filteredLinks =
+    type === "admin"
+      ? links
+      : links.filter(
+          (link) => link.name !== "Approval" && link.name !== "Admin Access"
+        );
 
   return (
     <>
-      {links.map((link) => {
+      {filteredLinks.map((link) => {
         const LinkIcon = link.icon;
         return (
           <Link

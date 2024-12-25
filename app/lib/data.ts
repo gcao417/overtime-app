@@ -1,11 +1,12 @@
 import { sql } from "@vercel/postgres";
 import {
-  CustomerField,
+  UserField,
   CustomersTableType,
-  InvoiceForm,
+  OvertimeForm,
   InvoicesTable,
   LatestInvoiceRaw,
   Revenue,
+  OvertimeTable,
 } from "./definitions";
 import { formatCurrency } from "./utils";
 
@@ -48,34 +49,33 @@ export async function fetchLatestInvoices() {
   }
 }
 
-export async function fetchCardData() {
+export async function fetchCardData(userID: string) {
   try {
     // You can probably combine these into a single SQL query
     // However, we are intentionally splitting them to demonstrate
     // how to initialize multiple queries in parallel with JS.
-    const invoiceCountPromise = sql`SELECT COUNT(*) FROM invoices`;
-    const customerCountPromise = sql`SELECT COUNT(*) FROM customers`;
-    const invoiceStatusPromise = sql`SELECT
-         SUM(CASE WHEN status = 'paid' THEN amount ELSE 0 END) AS "paid",
-         SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END) AS "pending"
-         FROM invoices`;
+    const overtimeCountPromise = sql`SELECT COUNT(*) FROM overtime WHERE user_id=${userID}`;
+    const pendingOvertimeCountPromise = sql`SELECT COUNT(*) FROM overtime WHERE status='pending' AND user_id=${userID}`;
+    const confirmedOvertimeCountPromise = sql`SELECT COUNT(*) FROM overtime WHERE status='confirmed' AND user_id=${userID}`;
+    const declinedOvertimeCountPromise = sql`SELECT COUNT(*) FROM overtime WHERE status='declined' AND user_id=${userID}`;
 
     const data = await Promise.all([
-      invoiceCountPromise,
-      customerCountPromise,
-      invoiceStatusPromise,
+      overtimeCountPromise,
+      pendingOvertimeCountPromise,
+      confirmedOvertimeCountPromise,
+      declinedOvertimeCountPromise,
     ]);
 
-    const numberOfInvoices = Number(data[0].rows[0].count ?? "0");
-    const numberOfCustomers = Number(data[1].rows[0].count ?? "0");
-    const totalPaidInvoices = formatCurrency(data[2].rows[0].paid ?? "0");
-    const totalPendingInvoices = formatCurrency(data[2].rows[0].pending ?? "0");
+    const numberOfOvertimes = Number(data[0].rows[0].count ?? "0");
+    const numberOfPendingOvertimes = Number(data[1].rows[0].count ?? "0");
+    const numberOfConfirmedOvertimes = Number(data[2].rows[0].count ?? "0");
+    const numberOfDeclinedOvertimes = Number(data[3].rows[0].count ?? "0");
 
     return {
-      numberOfCustomers,
-      numberOfInvoices,
-      totalPaidInvoices,
-      totalPendingInvoices,
+      numberOfOvertimes,
+      numberOfPendingOvertimes,
+      numberOfConfirmedOvertimes,
+      numberOfDeclinedOvertimes,
     };
   } catch (error) {
     console.error("Database Error:", error);
@@ -84,103 +84,160 @@ export async function fetchCardData() {
 }
 
 const ITEMS_PER_PAGE = 6;
-export async function fetchFilteredInvoices(
+export async function fetchFilteredOvertimes(
   query: string,
-  currentPage: number
+  currentPage: number,
+  userID: string,
+  status: string
 ) {
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
   try {
-    const invoices = await sql<InvoicesTable>`
-      SELECT
-        invoices.id,
-        invoices.amount,
-        invoices.date,
-        invoices.status,
-        customers.name,
-        customers.email,
-        customers.image_url
-      FROM invoices
-      JOIN customers ON invoices.customer_id = customers.id
-      WHERE
-        customers.name ILIKE ${`%${query}%`} OR
-        customers.email ILIKE ${`%${query}%`} OR
-        invoices.amount::text ILIKE ${`%${query}%`} OR
-        invoices.date::text ILIKE ${`%${query}%`} OR
-        invoices.status ILIKE ${`%${query}%`}
-      ORDER BY invoices.date DESC
-      LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
-    `;
+    const overtimes =
+      userID === "AllUserTimes"
+        ? status
+          ? await sql<OvertimeTable>`
+        SELECT
+          overtime.id,
+          overtime.user_id,
+          users.name as username,
+          overtime.creation_timestamp,
+          overtime.start_time,
+          overtime.end_time,
+          overtime.status
+        FROM overtime
+        JOIN users ON overtime.user_id = users.id
+        WHERE overtime.status = ${status}
+        ORDER BY overtime.creation_timestamp DESC
+        LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
+      `
+          : await sql<OvertimeTable>`
+        SELECT
+          overtime.id,
+          overtime.user_id,
+          users.name as username,
+          overtime.creation_timestamp,
+          overtime.start_time,
+          overtime.end_time,
+          overtime.status
+        FROM overtime
+        JOIN users ON overtime.user_id = users.id
+        ORDER BY overtime.creation_timestamp DESC
+        LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
+      `
+        : status
+        ? await sql<OvertimeTable>`
+        SELECT
+          overtime.id,
+          overtime.user_id,
+          users.name as username,
+          overtime.creation_timestamp,
+          overtime.start_time,
+          overtime.end_time,
+          overtime.status
+        FROM overtime
+        JOIN users ON overtime.user_id = users.id
+        WHERE overtime.user_id = ${userID}
+        AND overtime.status = ${status}
+        ORDER BY overtime.creation_timestamp DESC
+        LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
+      `
+        : await sql<OvertimeTable>`
+        SELECT
+          overtime.id,
+          overtime.user_id,
+          users.name as username,
+          overtime.creation_timestamp,
+          overtime.start_time,
+          overtime.end_time,
+          overtime.status
+        FROM overtime
+        JOIN users ON overtime.user_id = users.id
+        WHERE overtime.user_id = ${userID}
+        ORDER BY overtime.creation_timestamp DESC
+        LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
+      `;
 
-    return invoices.rows;
+    return overtimes.rows;
   } catch (error) {
     console.error("Database Error:", error);
-    throw new Error("Failed to fetch invoices.");
+    throw new Error("Failed to fetch overtimes.");
   }
 }
 
-export async function fetchInvoicesPages(query: string) {
+export async function fetchOvertimePages(
+  query: string,
+  userID: string,
+  status: string
+) {
   try {
-    const count = await sql`SELECT COUNT(*)
-    FROM invoices
-    JOIN customers ON invoices.customer_id = customers.id
-    WHERE
-      customers.name ILIKE ${`%${query}%`} OR
-      customers.email ILIKE ${`%${query}%`} OR
-      invoices.amount::text ILIKE ${`%${query}%`} OR
-      invoices.date::text ILIKE ${`%${query}%`} OR
-      invoices.status ILIKE ${`%${query}%`}
-  `;
+    const count =
+      userID === "AllUserTimes"
+        ? status
+          ? await sql`SELECT COUNT(*)
+        FROM overtime
+        WHERE overtime.status = ${status}
+        `
+          : await sql`SELECT COUNT(*)
+          FROM overtime
+          `
+        : status
+        ? await sql`SELECT COUNT(*)
+        FROM overtime
+        WHERE overtime.user_id = ${userID}
+        AND overtime.status = ${status}
+        `
+        : await sql`SELECT COUNT(*)
+          FROM overtime
+          WHERE overtime.user_id = ${userID}
+          `;
 
     const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
     return totalPages;
   } catch (error) {
     console.error("Database Error:", error);
-    throw new Error("Failed to fetch total number of invoices.");
+    throw new Error("Failed to fetch total number of overtimes.");
   }
 }
 
-export async function fetchInvoiceById(id: string) {
+export async function fetchOvertimeById(id: string) {
   try {
-    const data = await sql<InvoiceForm>`
+    const data = await sql<OvertimeForm>`
       SELECT
-        invoices.id,
-        invoices.customer_id,
-        invoices.amount,
-        invoices.status
-      FROM invoices
-      WHERE invoices.id = ${id};
+        overtime.id,
+        overtime.user_id,
+        overtime.creation_timestamp,
+        overtime.start_time,
+        overtime.end_time,
+        overtime.status
+      FROM overtime
+      WHERE overtime.id = ${id};
     `;
 
-    const invoice = data.rows.map((invoice) => ({
-      ...invoice,
-      // Convert amount from cents to dollars
-      amount: invoice.amount / 100,
+    const overtime = data.rows.map((overtime) => ({
+      ...overtime,
     }));
 
-    console.log(invoice); // Invoice is an empty array []
-    return invoice[0];
+    return overtime[0];
   } catch (error) {
     console.error("Database Error:", error);
     throw new Error("Failed to fetch invoice.");
   }
 }
 
-export async function fetchCustomers() {
+export async function fetchUsers() {
   try {
-    const data = await sql<CustomerField>`
-      SELECT
-        id,
-        name
-      FROM customers
+    const data = await sql<UserField>`
+      SELECT *
+      FROM users
       ORDER BY name ASC
     `;
 
-    const customers = data.rows;
-    return customers;
+    const users = data.rows;
+    return users;
   } catch (err) {
     console.error("Database Error:", err);
-    throw new Error("Failed to fetch all customers.");
+    throw new Error("Failed to fetch all users.");
   }
 }
 

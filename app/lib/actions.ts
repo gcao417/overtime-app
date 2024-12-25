@@ -6,118 +6,273 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { signIn } from "@/auth";
 import { AuthError } from "next-auth";
+import bcrypt from "bcrypt";
 
 const FormSchema = z.object({
-  id: z.string(),
-  customerId: z.string({
-    invalid_type_error: "Please select a customer.",
+  userId: z.string({
+    invalid_type_error: "User ID is required.",
   }),
-  amount: z.coerce
-    .number()
-    .gt(0, { message: "Please enter an amount greater than $0." }),
-  status: z.enum(["pending", "paid"], {
-    invalid_type_error: "Please select an invoice status.",
+  date: z.string({
+    invalid_type_error: "Please select a date.",
   }),
-  date: z.string(),
+  startTime: z.string({
+    invalid_type_error: "Please select a start time.",
+  }),
+  endTime: z.string({
+    invalid_type_error: "Please select an end time.",
+  }),
 });
 
-const CreateInvoice = FormSchema.omit({ id: true, date: true });
+const UserFormSchema = z.object({
+  name: z.string({
+    invalid_type_error: "Please select a name.",
+  }),
+  email: z.string({
+    invalid_type_error: "Please select an email.",
+  }),
+  password: z.string({
+    invalid_type_error: "Please select a password.",
+  }),
+  role: z.string({
+    invalid_type_error: "Please select a role.",
+  }),
+});
 
 export type State = {
   errors?: {
-    customerId?: string[];
-    amount?: string[];
-    status?: string[];
+    userId?: string[];
+    date?: string[];
+    startTime?: string[];
+    endTime?: string[];
   };
   message?: string | null;
 };
 
-export async function createInvoice(prevState: State, formData: FormData) {
-  // Validate form using Zod
-  const validatedFields = CreateInvoice.safeParse({
-    customerId: formData.get("customerId"),
-    amount: formData.get("amount"),
-    status: formData.get("status"),
+export async function createOvertime(prevState: State, formData: FormData) {
+  const validatedFields = FormSchema.safeParse({
+    userId: formData.get("userId") ? formData.get("userId") : 0,
+    date: formData.get("date") ? formData.get("date") : 0,
+    startTime: formData.get("startTime") ? formData.get("startTime") : 0,
+    endTime: formData.get("endTime") ? formData.get("endTime") : 0,
   });
 
-  // If form validation fails, return errors early. Otherwise, continue.
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
-      message: "Missing Fields. Failed to Create Invoice.",
+      message: "Missing Fields. Failed to Create Overtime.",
     };
   }
 
-  // Prepare data for insertion into the database
-  const { customerId, amount, status } = validatedFields.data;
-  const amountInCents = amount * 100;
-  const date = new Date().toISOString().split("T")[0];
+  const { userId, date, startTime, endTime } = validatedFields.data;
 
-  // Insert data into the database
+  const startMinutes =
+    parseInt(startTime.split(":")[0]) * 60 + parseInt(startTime.split(":")[1]);
+  const endMinutes =
+    parseInt(endTime.split(":")[0]) * 60 + parseInt(endTime.split(":")[1]);
+
+  if (startMinutes > endMinutes || startMinutes == endMinutes) {
+    return {
+      message: "End Time Must Be Greater Than Start Time.",
+    };
+  }
+
+  const startDateTime = `${date} ${startTime}`;
+  const endDateTime = `${date} ${endTime}`;
+
   try {
     await sql`
-    INSERT INTO invoices (customer_id, amount, status, date)
-    VALUES (${customerId}, ${amountInCents}, ${status}, ${date})
-  `;
+    INSERT INTO overtime (user_id, start_time, end_time)
+    VALUES (${userId}, ${startDateTime}, ${endDateTime})
+    `;
   } catch (error) {
-    // If a database error occurs, return a more specific error.
     return {
-      message: "Database Error: Failed to Create Invoice.",
+      message: "Database Error: Failed to Create Overtime.",
     };
   }
 
-  // Revalidate the cache for the invoices page and redirect the user.
-  revalidatePath("/dashboard/invoices");
-  redirect("/dashboard/invoices");
+  revalidatePath("/dashboard/overtime");
+  redirect("/dashboard/overtime");
 }
 
-const UpdateInvoice = FormSchema.omit({ id: true, date: true });
+const UpdateOvertime = FormSchema.omit({
+  userId: true,
+});
 
-export async function updateInvoice(
+export async function updateOvertime(
   id: string,
   prevState: State,
   formData: FormData
 ) {
-  const validatedFields = UpdateInvoice.safeParse({
-    customerId: formData.get("customerId"),
-    amount: formData.get("amount"),
-    status: formData.get("status"),
+  const validatedFields = UpdateOvertime.safeParse({
+    date: formData.get("date") || "",
+    startTime: formData.get("startTime") || "",
+    endTime: formData.get("endTime") || "",
   });
 
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
-      message: "Missing Fields. Failed to Update Invoice.",
+      message: "Missing Fields. Failed to Update Overtime.",
     };
   }
 
-  const { customerId, amount, status } = validatedFields.data;
-  const amountInCents = amount * 100;
+  const { date, startTime, endTime } = validatedFields.data;
+
+  const startMinutes =
+    parseInt(startTime.split(":")[0]) * 60 + parseInt(startTime.split(":")[1]);
+  const endMinutes =
+    parseInt(endTime.split(":")[0]) * 60 + parseInt(endTime.split(":")[1]);
+
+  if (startMinutes > endMinutes || startMinutes == endMinutes) {
+    return {
+      message: "End Time Must Be Greater Than Start Time.",
+    };
+  }
+
+  const startDateTime = `${date} ${startTime}`;
+  const endDateTime = `${date} ${endTime}`;
 
   try {
     await sql`
-      UPDATE invoices
-      SET customer_id = ${customerId}, amount = ${amountInCents}, status = ${status}
+      UPDATE overtime
+      SET start_time = ${startDateTime}, end_time = ${endDateTime}
       WHERE id = ${id}
     `;
   } catch (error) {
     return {
-      message: "Database Error: Failed to Update Invoice.",
+      message: "Database Error: Failed to Update Overtime.",
     };
   }
 
-  revalidatePath("/dashboard/invoices");
-  redirect("/dashboard/invoices");
+  revalidatePath("/dashboard/overtime");
+  redirect("/dashboard");
 }
 
-export async function deleteInvoice(id: string) {
+export async function deleteOvertime(id: string) {
   try {
-    await sql`DELETE FROM invoices WHERE id = ${id}`;
-    revalidatePath("/dashboard/invoices");
-    return { message: "Deleted Invoice." };
+    await sql`DELETE FROM overtime WHERE id = ${id}`;
+    revalidatePath("/dashboard/overtime");
+    return { message: "Deleted Overtime." };
   } catch (error) {
     return {
-      message: "Database Error: Failed to Delete Invoice.",
+      message: "Database Error: Failed to Delete Overtime.",
+    };
+  }
+}
+
+export async function confirmOvertime(id: string) {
+  try {
+    await sql`UPDATE overtime SET status = 'confirmed' WHERE id = ${id}`;
+    revalidatePath("/dashboard/approval");
+    return { message: "Confirmed Overtime." };
+  } catch (error) {
+    return {
+      message: "Database Error: Failed to Confirm Overtime.",
+    };
+  }
+}
+
+export async function declineOvertime(id: string) {
+  try {
+    await sql`UPDATE overtime SET status = 'declined' WHERE id = ${id}`;
+    revalidatePath("/dashboard/approval");
+    return { message: "Declined Overtime." };
+  } catch (error) {
+    return {
+      message: "Database Error: Failed to Decline Overtime.",
+    };
+  }
+}
+
+export async function createUser(prevState: State, formData: FormData) {
+  const validatedFields = UserFormSchema.safeParse({
+    name: formData.get("name") ? formData.get("name") : 0,
+    email: formData.get("email") ? formData.get("email") : 0,
+    password: formData.get("password") ? formData.get("password") : 0,
+    role: formData.get("role") ? formData.get("role") : 0,
+  });
+
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: "Missing Fields. Failed to Create User.",
+    };
+  }
+
+  const { name, email, password, role } = validatedFields.data;
+
+  if (name?.length < 2) {
+    return {
+      errors: {
+        name: ["Username must be longer or equals to 2 characters."],
+      },
+    };
+  }
+
+  if (password?.length < 6) {
+    return {
+      errors: {
+        password: ["Password must be longer or equals to 6 characters."],
+      },
+    };
+  }
+
+  const saltRounds = 10;
+  const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+  try {
+    await sql`
+    INSERT INTO users (id, name, email, password, role)
+    VALUES (gen_random_uuid(), ${name}, ${email}, ${hashedPassword}, ${role});
+    `;
+  } catch (error) {
+    console.log(error);
+    if (error?.code === "23505") {
+      return {
+        errors: {
+          email: ["This email is already taken. Please choose another one."],
+        },
+      };
+    }
+
+    return {
+      message: "Database Error: Failed to Create User.",
+    };
+  }
+
+  revalidatePath("/dashboard/admin");
+  redirect("/dashboard/admin");
+}
+
+export async function toggleUserRole(id: string, role: string) {
+  try {
+    if (role === "user") {
+      await sql`UPDATE users
+    SET role = 'admin'
+    WHERE id = ${id}`;
+    } else {
+      await sql`UPDATE users
+      SET role = 'user'
+      WHERE id = ${id}`;
+    }
+
+    revalidatePath("/dashboard/admin");
+    return { message: "Updated User Role." };
+  } catch (error) {
+    return {
+      message: "Database Error: Failed to Update User Role.",
+    };
+  }
+}
+
+export async function deleteUser(id: string) {
+  try {
+    await sql`DELETE FROM users WHERE id = ${id}`;
+    revalidatePath("/dashboard/admin");
+    return { message: "Deleted User." };
+  } catch (error) {
+    return {
+      message: "Database Error: Failed to Delete User.",
     };
   }
 }

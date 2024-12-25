@@ -1,38 +1,50 @@
 import {
-  BanknotesIcon,
+  CheckIcon,
   ClockIcon,
-  UserGroupIcon,
-  InboxIcon,
+  XMarkIcon,
+  Squares2X2Icon,
 } from "@heroicons/react/24/outline";
 import { lusitana } from "@/app/ui/fonts";
 import { fetchCardData } from "@/app/lib/data";
+import { auth } from "@/auth";
 
 const iconMap = {
-  collected: BanknotesIcon,
-  customers: UserGroupIcon,
+  all: Squares2X2Icon,
   pending: ClockIcon,
-  invoices: InboxIcon,
+  confirmed: CheckIcon,
+  declined: XMarkIcon,
 };
 
 export default async function CardWrapper() {
+  const session = await auth();
+  const userID = session?.user?.id;
+
   const {
-    numberOfInvoices,
-    numberOfCustomers,
-    totalPaidInvoices,
-    totalPendingInvoices,
-  } = await fetchCardData();
+    numberOfOvertimes,
+    numberOfPendingOvertimes,
+    numberOfConfirmedOvertimes,
+    numberOfDeclinedOvertimes,
+  } = await fetchCardData(userID);
 
   return (
     <>
       {/* NOTE: Uncomment this code in Chapter 9 */}
 
-      <Card title="Collected" value={totalPaidInvoices} type="collected" />
-      <Card title="Pending" value={totalPendingInvoices} type="pending" />
-      <Card title="Total Invoices" value={numberOfInvoices} type="invoices" />
+      <Card title="Number of Overtimes" value={numberOfOvertimes} type="all" />
       <Card
-        title="Total Customers"
-        value={numberOfCustomers}
-        type="customers"
+        title="Pending Overtimes"
+        value={numberOfPendingOvertimes}
+        type="pending"
+      />
+      <Card
+        title="Confirmed Overtimes"
+        value={numberOfConfirmedOvertimes}
+        type="confirmed"
+      />
+      <Card
+        title="Declined Overtimes"
+        value={numberOfDeclinedOvertimes}
+        type="declined"
       />
     </>
   );
@@ -45,7 +57,7 @@ export function Card({
 }: {
   title: string;
   value: number | string;
-  type: "invoices" | "customers" | "pending" | "collected";
+  type: "all" | "pending" | "confirmed" | "declined";
 }) {
   const Icon = iconMap[type];
 
