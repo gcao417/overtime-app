@@ -17,7 +17,7 @@ const iconMap = {
 
 export default async function CardWrapper() {
   const session = await auth();
-  const userID = session?.user?.id!;
+  const userID = session?.user?.id;
 
   const {
     numberOfOvertimes,
