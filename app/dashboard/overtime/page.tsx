@@ -40,7 +40,7 @@ export default async function Page({
         <Table
           query={query}
           currentPage={currentPage}
-          userID={session?.user?.id}
+          userID={session?.user?.id ? session?.user?.id : ""}
         />
       </Suspense>
       <div className="mt-5 flex w-full justify-center">
