@@ -230,7 +230,7 @@ export async function createUser(prevState: State, formData: FormData) {
     INSERT INTO users (id, name, email, password, role)
     VALUES (gen_random_uuid(), ${name}, ${email}, ${hashedPassword}, ${role});
     `;
-  } catch (error) {
+  } catch (error: any) {
     console.log(error);
     if (error?.code === "23505") {
       return {
