@@ -6,6 +6,20 @@ import { sql } from "@vercel/postgres";
 import type { User } from "@/app/lib/definitions";
 import bcrypt from "bcrypt";
 
+declare module "next-auth" {
+  interface User {
+    // Add your additional properties here:
+    role?: string | null;
+  }
+}
+
+declare module "@auth/core/adapters" {
+  interface AdapterUser {
+    // Add your additional properties here:
+    role?: string | null;
+  }
+}
+
 async function getUser(email: string): Promise<User | undefined> {
   try {
     const user = await sql<User>`SELECT * FROM users WHERE email=${email}`;
