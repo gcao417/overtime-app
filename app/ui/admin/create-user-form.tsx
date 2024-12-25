@@ -11,7 +11,6 @@ import {
   ShieldCheckIcon,
 } from "@heroicons/react/24/outline"; // Import icons
 
-// Ensure State is properly typed if necessary
 export default function Form() {
   const initialState: State = { message: null, errors: {} };
   const [state, formAction] = useActionState(createUser, initialState);
@@ -36,7 +35,7 @@ export default function Form() {
   };
 
   return (
-    <form action={formAction} method="post">
+    <form action={formAction}>
       <div className="rounded-md bg-gray-50 p-4 md:p-6">
         {/* Username */}
         <div className="mb-4">
@@ -57,11 +56,12 @@ export default function Form() {
             />
           </div>
           <div id="name-error" aria-live="polite" aria-atomic="true">
-            {state?.errors?.name?.map((error: string) => (
-              <p className="mt-2 text-sm text-red-500" key={error}>
-                {error}
-              </p>
-            ))}
+            {state?.errors?.name &&
+              state?.errors?.name.map((error: string) => (
+                <p className="mt-2 text-sm text-red-500" key={error}>
+                  {error}
+                </p>
+              ))}
           </div>
         </div>
 
@@ -84,11 +84,12 @@ export default function Form() {
             />
           </div>
           <div id="email-error" aria-live="polite" aria-atomic="true">
-            {state?.errors?.email?.map((error: string) => (
-              <p className="mt-2 text-sm text-red-500" key={error}>
-                {error}
-              </p>
-            ))}
+            {state?.errors?.email &&
+              state?.errors?.email?.map((error: string) => (
+                <p className="mt-2 text-sm text-red-500" key={error}>
+                  {error}
+                </p>
+              ))}
           </div>
         </div>
 
@@ -111,11 +112,12 @@ export default function Form() {
             />
           </div>
           <div id="password-error" aria-live="polite" aria-atomic="true">
-            {state?.errors?.password?.map((error: string) => (
-              <p className="mt-2 text-sm text-red-500" key={error}>
-                {error}
-              </p>
-            ))}
+            {state?.errors?.password &&
+              state?.errors?.password.map((error: string) => (
+                <p className="mt-2 text-sm text-red-500" key={error}>
+                  {error}
+                </p>
+              ))}
           </div>
         </div>
 
@@ -139,15 +141,15 @@ export default function Form() {
             </select>
           </div>
           <div id="role-error" aria-live="polite" aria-atomic="true">
-            {state?.errors?.role?.map((error: string) => (
-              <p className="mt-2 text-sm text-red-500" key={error}>
-                {error}
-              </p>
-            ))}
+            {state?.errors?.role &&
+              state?.errors?.role.map((error: string) => (
+                <p className="mt-2 text-sm text-red-500" key={error}>
+                  {error}
+                </p>
+              ))}
           </div>
         </div>
 
-        {/* General Error Message */}
         <div aria-live="polite" aria-atomic="true">
           {state?.message && (
             <p className="mt-2 text-sm text-red-500">{state?.message}</p>
