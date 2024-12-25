@@ -3,7 +3,6 @@ import {
   UserField,
   CustomersTableType,
   OvertimeForm,
-  InvoicesTable,
   LatestInvoiceRaw,
   Revenue,
   OvertimeTable,

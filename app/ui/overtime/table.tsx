@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { UpdateOvertime, DeleteOvertime } from "@/app/ui/overtime/buttons";
 import OvertimeStatus from "@/app/ui/overtime/status";
 import {

@@ -1,6 +1,13 @@
 import { DeleteUser, ToggleUserRole } from "@/app/ui/admin/buttons";
 
-export default function UsersTable({ otherUsers }: { otherUsers: any[] }) {
+type User = {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+};
+
+export default function UsersTable({ otherUsers }: { otherUsers: User[] }) {
   return (
     <div className="mt-6 flow-root">
       <div className="inline-block min-w-full align-middle">

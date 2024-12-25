@@ -1,12 +1,6 @@
 "use client";
 
-import { UserField, OvertimeForm } from "@/app/lib/definitions";
-import {
-  CheckIcon,
-  ClockIcon,
-  CurrencyDollarIcon,
-  UserCircleIcon,
-} from "@heroicons/react/24/outline";
+import { OvertimeForm } from "@/app/lib/definitions";
 import Link from "next/link";
 import { Button } from "@/app/ui/button";
 import { updateOvertime, State } from "@/app/lib/actions";
@@ -17,10 +11,8 @@ import { useState, useEffect } from "react";
 
 export default function EditOvertimeForm({
   overtime,
-  users,
 }: {
   overtime: OvertimeForm;
-  users: UserField[];
 }) {
   const initialState: State = { message: null, errors: {} };
   const updateOvertimeWithId = updateOvertime.bind(null, overtime.id);

@@ -85,6 +85,7 @@ export async function createOvertime(prevState: State, formData: FormData) {
     VALUES (${userId}, ${startDateTime}, ${endDateTime})
     `;
   } catch (error) {
+    console.log(error);
     return {
       message: "Database Error: Failed to Create Overtime.",
     };
@@ -139,6 +140,7 @@ export async function updateOvertime(
       WHERE id = ${id}
     `;
   } catch (error) {
+    console.log(error);
     return {
       message: "Database Error: Failed to Update Overtime.",
     };
@@ -154,6 +156,7 @@ export async function deleteOvertime(id: string) {
     revalidatePath("/dashboard/overtime");
     return { message: "Deleted Overtime." };
   } catch (error) {
+    console.log(error);
     return {
       message: "Database Error: Failed to Delete Overtime.",
     };
@@ -166,6 +169,7 @@ export async function confirmOvertime(id: string) {
     revalidatePath("/dashboard/approval");
     return { message: "Confirmed Overtime." };
   } catch (error) {
+    console.log(error);
     return {
       message: "Database Error: Failed to Confirm Overtime.",
     };
@@ -178,6 +182,7 @@ export async function declineOvertime(id: string) {
     revalidatePath("/dashboard/approval");
     return { message: "Declined Overtime." };
   } catch (error) {
+    console.log(error);
     return {
       message: "Database Error: Failed to Decline Overtime.",
     };
@@ -259,6 +264,7 @@ export async function toggleUserRole(id: string, role: string) {
     revalidatePath("/dashboard/admin");
     return { message: "Updated User Role." };
   } catch (error) {
+    console.log(error);
     return {
       message: "Database Error: Failed to Update User Role.",
     };
@@ -271,6 +277,7 @@ export async function deleteUser(id: string) {
     revalidatePath("/dashboard/admin");
     return { message: "Deleted User." };
   } catch (error) {
+    console.log(error);
     return {
       message: "Database Error: Failed to Delete User.",
     };

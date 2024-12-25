@@ -34,7 +34,7 @@ export default async function Page({
     <div className="w-full">
       {session?.user?.role !== "admin" ? (
         <div className="flex w-full items-center justify-between">
-          "You do not have access to this page."
+          You do not have access to this page.
         </div>
       ) : (
         <div>
