@@ -13,7 +13,7 @@ export default async function Page() {
 
   return (
     <div className="w-full">
-      {session?.user?.role ? (
+      {session?.user ? (
         session?.user?.role !== "admin" ? (
           <div className="flex w-full items-center justify-between">
             You do not have access to this page.
