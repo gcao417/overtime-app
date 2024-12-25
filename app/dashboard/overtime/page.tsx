@@ -21,7 +21,7 @@ export default async function Page({
   const query = searchParams?.query || "";
   const currentPage = Number(searchParams?.page) || 1;
 
-  const totalPages = await fetchOvertimePages(query, session?.user?.id);
+  const totalPages = await fetchOvertimePages(query, session?.user?.id, "");
 
   return (
     <div className="w-full">
