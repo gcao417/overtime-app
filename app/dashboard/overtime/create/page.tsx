@@ -22,7 +22,7 @@ export default async function CreateOvertimePage() {
           },
         ]}
       />
-      <CreateOvertimeForm userId={session.user.id} />
+      <CreateOvertimeForm userId={session.user.id!} />
     </main>
   );
 }
