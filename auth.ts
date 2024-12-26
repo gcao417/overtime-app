@@ -13,13 +13,6 @@ declare module "next-auth" {
   }
 }
 
-declare module "@auth/core/adapters" {
-  interface AdapterUser {
-    // Add your additional properties here:
-    role?: string | null;
-  }
-}
-
 async function getUser(email: string): Promise<User | undefined> {
   try {
     const user = await sql<User>`SELECT * FROM users WHERE email=${email}`;

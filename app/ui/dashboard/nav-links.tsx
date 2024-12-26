@@ -31,7 +31,11 @@ const links = [
   },
 ];
 
-export default function NavLinks({ type }: { type: string }) {
+export default function NavLinks({
+  type,
+}: {
+  type: string | null | undefined;
+}) {
   const pathname = usePathname();
 
   const filteredLinks =

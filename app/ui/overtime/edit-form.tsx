@@ -27,22 +27,18 @@ export default function EditOvertimeForm({
 
   useEffect(() => {
     if (overtime) {
-      // Assuming overtime.start_time and overtime.end_time are Date objects or strings that can be converted into Date objects
       const startDate = new Date(overtime.start_time);
       const endDate = new Date(overtime.end_time);
 
-      // Set the date (date part only, without time)
       setSelectedDate(startDate);
 
-      // Extract start time (hours and minutes)
-      const startHours = startDate.getHours().toString().padStart(2, "0"); // Format hours (e.g. "08")
-      const startMinutes = startDate.getMinutes().toString().padStart(2, "0"); // Format minutes (e.g. "53")
-      setStartTime(`${startHours}:${startMinutes}`); // Format time (e.g. "08:53")
+      const startHours = startDate.getHours().toString().padStart(2, "0");
+      const startMinutes = startDate.getMinutes().toString().padStart(2, "0");
+      setStartTime(`${startHours}:${startMinutes}`);
 
-      // Extract end time (hours and minutes)
-      const endHours = endDate.getHours().toString().padStart(2, "0"); // Format hours (e.g. "08")
-      const endMinutes = endDate.getMinutes().toString().padStart(2, "0"); // Format minutes (e.g. "53")
-      setEndTime(`${endHours}:${endMinutes}`); // Format time (e.g. "08:53")
+      const endHours = endDate.getHours().toString().padStart(2, "0");
+      const endMinutes = endDate.getMinutes().toString().padStart(2, "0");
+      setEndTime(`${endHours}:${endMinutes}`);
     }
   }, [overtime]);
 
@@ -63,17 +59,14 @@ export default function EditOvertimeForm({
     : "";
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault(); // Prevent the default form submission behavior
-
-    // Create a new FormData object from the form element
+    event.preventDefault();
     const formData = new FormData(event.target as HTMLFormElement);
-
-    // Call formAction (assuming it's already defined)
     formAction(formData);
   };
 
   return (
     <form onSubmit={handleSubmit}>
+      {/* Form fields remain unchanged */}
       <div className="rounded-md bg-gray-50 p-4 md:p-6">
         {/* Date */}
         <div className="mb-4">
@@ -126,8 +119,8 @@ export default function EditOvertimeForm({
           </div>
 
           <div id="amount-error" aria-live="polite" aria-atomic="true">
-            {state.errors?.start_time &&
-              state.errors.start_time.map((error: string) => (
+            {state.errors?.startTime &&
+              state.errors.startTime.map((error: string) => (
                 <p className="mt-2 text-sm text-red-500" key={error}>
                   {error}
                 </p>
@@ -151,8 +144,8 @@ export default function EditOvertimeForm({
           </div>
 
           <div id="amount-error" aria-live="polite" aria-atomic="true">
-            {state.errors?.end_time &&
-              state.errors.end_time.map((error: string) => (
+            {state.errors?.endTime &&
+              state.errors.endTime.map((error: string) => (
                 <p className="mt-2 text-sm text-red-500" key={error}>
                   {error}
                 </p>
@@ -162,9 +155,9 @@ export default function EditOvertimeForm({
 
         {/* Message */}
         <div aria-live="polite" aria-atomic="true">
-          {state.message ? (
+          {state.message && (
             <p className="mt-2 text-sm text-red-500">{state.message}</p>
-          ) : null}
+          )}
         </div>
       </div>
 

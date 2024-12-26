@@ -16,7 +16,12 @@ export default async function OvertimesTable({
   currentPage: number;
   userID: string;
 }) {
-  const overtimes = await fetchFilteredOvertimes(query, currentPage, userID);
+  const overtimes = await fetchFilteredOvertimes(
+    query,
+    currentPage,
+    userID,
+    ""
+  );
 
   return (
     <div className="mt-6 flow-root">
@@ -25,34 +30,34 @@ export default async function OvertimesTable({
           <div className="md:hidden">
             {overtimes?.map((overtime) => (
               <div
-                key={overtime.id}
+                key={overtime?.id.toString()}
                 className="mb-2 w-full rounded-md bg-white p-4"
               >
                 <div className="flex items-center justify-between border-b pb-4">
                   <div>
                     <div className="mb-2 flex items-center">
-                      <p>{overtime.name}</p>
+                      <p>{overtime?.name}</p>
                     </div>
                   </div>
-                  <OvertimeStatus status={overtime.status} />
+                  <OvertimeStatus status={overtime?.status} />
                 </div>
                 <div className="flex w-full items-center justify-between pt-4">
                   <div>
-                    <p>{formatDateToLocal(overtime.creation_timestamp)}</p>
-                    <p>{formatDateToLocal(overtime.start_time)}</p>
-                    <p>{formatDateToLocal(overtime.end_time)}</p>
+                    <p>{formatDateToLocal(overtime?.creation_timestamp)}</p>
+                    <p>{formatDateToLocal(overtime?.start_time)}</p>
+                    <p>{formatDateToLocal(overtime?.end_time)}</p>
                     <p>
                       {formatHours(
                         calculateTimeDifferenceInHours(
-                          overtime.start_time,
-                          overtime.end_time
+                          overtime?.start_time,
+                          overtime?.end_time
                         )
                       )}
                     </p>
                   </div>
                   <div className="flex justify-end gap-2">
-                    <UpdateOvertime id={overtime.id} />
-                    <DeleteOvertime id={overtime.id} />
+                    <UpdateOvertime id={overtime?.id.toString()} />
+                    <DeleteOvertime id={overtime?.id.toString()} />
                   </div>
                 </div>
               </div>
@@ -87,38 +92,38 @@ export default async function OvertimesTable({
             <tbody className="bg-white">
               {overtimes?.map((overtime) => (
                 <tr
-                  key={overtime.id}
+                  key={overtime?.id.toString()}
                   className="w-full border-b py-3 text-sm last-of-type:border-none [&:first-child>td:first-child]:rounded-tl-lg [&:first-child>td:last-child]:rounded-tr-lg [&:last-child>td:first-child]:rounded-bl-lg [&:last-child>td:last-child]:rounded-br-lg"
                 >
                   <td className="whitespace-nowrap py-3 pl-6 pr-3">
                     <div className="flex items-center gap-3">
-                      <p>{overtime.username}</p>
+                      <p>{overtime?.username}</p>
                     </div>
                   </td>
                   <td className="whitespace-nowrap px-3 py-3">
-                    {formatDateToLocal(overtime.creation_timestamp)}
+                    {formatDateToLocal(overtime?.creation_timestamp)}
                   </td>
                   <td className="whitespace-nowrap px-3 py-3">
-                    <OvertimeStatus status={overtime.status} />
+                    <OvertimeStatus status={overtime?.status} />
                   </td>
                   <td className="whitespace-nowrap px-3 py-3">
-                    {formatDateToLocal(overtime.start_time)}
+                    {formatDateToLocal(overtime?.start_time)}
                   </td>
                   <td className="whitespace-nowrap px-3 py-3">
-                    {formatDateToLocal(overtime.end_time)}
+                    {formatDateToLocal(overtime?.end_time)}
                   </td>
                   <td className="whitespace-nowrap px-3 py-3">
                     {formatHours(
                       calculateTimeDifferenceInHours(
-                        overtime.start_time,
-                        overtime.end_time
+                        overtime?.start_time,
+                        overtime?.end_time
                       )
                     )}
                   </td>
                   <td className="whitespace-nowrap py-3 pl-6 pr-3">
                     <div className="flex justify-end gap-3">
-                      <UpdateOvertime id={overtime.id} />
-                      <DeleteOvertime id={overtime.id} />
+                      <UpdateOvertime id={overtime?.id.toString()} />
+                      <DeleteOvertime id={overtime?.id.toString()} />
                     </div>
                   </td>
                 </tr>

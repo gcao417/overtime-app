@@ -24,19 +24,21 @@ const FormSchema = z.object({
 });
 
 const UserFormSchema = z.object({
-  name: z.string({
-    invalid_type_error: "Please select a name.",
-  }),
-  email: z.string({
-    invalid_type_error: "Please select an email.",
-  }),
-  password: z.string({
-    invalid_type_error: "Please select a password.",
-  }),
-  role: z.string({
-    invalid_type_error: "Please select a role.",
-  }),
+  name: z.string().min(2, "Username must be 2 or more characters long"),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be 6 or more characters long"),
+  role: z.enum(["user", "admin"]),
 });
+
+export type UserFormState = {
+  errors?: {
+    name?: string[];
+    email?: string[];
+    password?: string[];
+    role?: string[];
+  };
+  message?: string | null;
+};
 
 export type State = {
   errors?: {
@@ -95,19 +97,21 @@ export async function createOvertime(prevState: State, formData: FormData) {
   redirect("/dashboard/overtime");
 }
 
-const UpdateOvertime = FormSchema.omit({
-  userId: true,
+const UpdateOvertime = z.object({
+  date: z.string(),
+  startTime: z.string(),
+  endTime: z.string(),
 });
 
 export async function updateOvertime(
   id: string,
   prevState: State,
   formData: FormData
-) {
+): Promise<State> {
   const validatedFields = UpdateOvertime.safeParse({
-    date: formData.get("date") || "",
-    startTime: formData.get("startTime") || "",
-    endTime: formData.get("endTime") || "",
+    date: formData.get("date"),
+    startTime: formData.get("startTime"),
+    endTime: formData.get("endTime"),
   });
 
   if (!validatedFields.success) {
@@ -124,7 +128,7 @@ export async function updateOvertime(
   const endMinutes =
     parseInt(endTime.split(":")[0]) * 60 + parseInt(endTime.split(":")[1]);
 
-  if (startMinutes > endMinutes || startMinutes == endMinutes) {
+  if (startMinutes >= endMinutes) {
     return {
       message: "End Time Must Be Greater Than Start Time.",
     };
@@ -140,14 +144,14 @@ export async function updateOvertime(
       WHERE id = ${id}
     `;
   } catch (error) {
-    console.log(error);
+    console.error("Error updating overtime:", error);
     return {
       message: "Database Error: Failed to Update Overtime.",
     };
   }
 
   revalidatePath("/dashboard/overtime");
-  redirect("/dashboard");
+  redirect("/dashboard/overtime");
 }
 
 export async function deleteOvertime(id: string) {
@@ -189,12 +193,15 @@ export async function declineOvertime(id: string) {
   }
 }
 
-export async function createUser(prevState: State, formData: FormData) {
+export async function createUser(
+  prevState: UserFormState,
+  formData: FormData
+): Promise<UserFormState> {
   const validatedFields = UserFormSchema.safeParse({
-    name: formData.get("name") ? formData.get("name") : 0,
-    email: formData.get("email") ? formData.get("email") : 0,
-    password: formData.get("password") ? formData.get("password") : 0,
-    role: formData.get("role") ? formData.get("role") : 0,
+    name: formData.get("name"),
+    email: formData.get("email"),
+    password: formData.get("password"),
+    role: formData.get("role"),
   });
 
   if (!validatedFields.success) {
@@ -205,23 +212,6 @@ export async function createUser(prevState: State, formData: FormData) {
   }
 
   const { name, email, password, role } = validatedFields.data;
-
-  if (name?.length < 2) {
-    return {
-      errors: {
-        name: ["Username must be longer or equals to 2 characters."],
-      },
-    };
-  }
-
-  if (password?.length < 6) {
-    return {
-      errors: {
-        password: ["Password must be longer or equals to 6 characters."],
-      },
-    };
-  }
-
   const saltRounds = 10;
   const hashedPassword = await bcrypt.hash(password, saltRounds);
 
@@ -231,7 +221,7 @@ export async function createUser(prevState: State, formData: FormData) {
     VALUES (gen_random_uuid(), ${name}, ${email}, ${hashedPassword}, ${role});
     `;
   } catch (error: any) {
-    console.log(error);
+    console.error("Error creating user:", error);
     if (error?.code === "23505") {
       return {
         errors: {
@@ -239,7 +229,6 @@ export async function createUser(prevState: State, formData: FormData) {
         },
       };
     }
-
     return {
       message: "Database Error: Failed to Create User.",
     };

@@ -98,8 +98,10 @@ export type OvertimeForm = {
 export type OvertimeTable = {
   id: number;
   user_id: UUID;
+  name: string;
   username: string;
   creation_timestamp: string;
   start_time: string;
   end_time: string;
+  status: string;
 };
