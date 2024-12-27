@@ -235,7 +235,9 @@ export async function createUser(
   }
 
   revalidatePath("/dashboard/admin");
-  redirect("/dashboard/admin");
+  // redirect("/dashboard/admin");
+
+  return { message: "Success" };
 }
 
 export async function toggleUserRole(id: string, role: string) {
