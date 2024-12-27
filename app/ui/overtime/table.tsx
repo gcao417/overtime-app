@@ -36,14 +36,16 @@ export default async function OvertimesTable({
                 <div className="flex items-center justify-between border-b pb-4">
                   <div>
                     <div className="mb-2 flex items-center">
-                      <p>{overtime?.name}</p>
+                      <p>{overtime?.username}</p>
                     </div>
                   </div>
                   <OvertimeStatus status={overtime?.status} />
                 </div>
                 <div className="flex w-full items-center justify-between pt-4">
                   <div>
-                    <p>{formatDateToLocal(overtime?.creation_timestamp)}</p>
+                    <p className="hidden md:block">
+                      {formatDateToLocal(overtime?.creation_timestamp)}
+                    </p>
                     <p>{formatDateToLocal(overtime?.start_time)}</p>
                     <p>{formatDateToLocal(overtime?.end_time)}</p>
                     <p>
@@ -53,10 +55,14 @@ export default async function OvertimesTable({
                           overtime?.end_time
                         )
                       )}
+                      <span className="md:hidden"> hour</span>{" "}
+                      {/* 'hour' will only be visible on small screens */}
                     </p>
                   </div>
                   <div className="flex justify-end gap-2">
-                    <UpdateOvertime id={overtime?.id.toString()} />
+                    {overtime?.status === "pending" ? (
+                      <UpdateOvertime id={overtime?.id.toString()} />
+                    ) : null}
                     <DeleteOvertime id={overtime?.id.toString()} />
                   </div>
                 </div>
@@ -122,7 +128,9 @@ export default async function OvertimesTable({
                   </td>
                   <td className="whitespace-nowrap py-3 pl-6 pr-3">
                     <div className="flex justify-end gap-3">
-                      <UpdateOvertime id={overtime?.id.toString()} />
+                      {overtime?.status === "pending" ? (
+                        <UpdateOvertime id={overtime?.id.toString()} />
+                      ) : null}
                       <DeleteOvertime id={overtime?.id.toString()} />
                     </div>
                   </td>

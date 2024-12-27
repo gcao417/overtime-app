@@ -2,8 +2,11 @@ import Form from "@/app/ui/overtime/edit-form";
 import Breadcrumbs from "@/app/ui/overtime/breadcrumbs";
 import { fetchOvertimeById } from "@/app/lib/data";
 import { notFound } from "next/navigation";
+import { auth } from "@/auth";
 
 export default async function Page({ params }: { params: { id: string } }) {
+  const session = await auth();
+
   const id = params.id;
   const [overtime] = await Promise.all([fetchOvertimeById(id)]);
 
@@ -23,7 +26,12 @@ export default async function Page({ params }: { params: { id: string } }) {
           },
         ]}
       />
-      <Form overtime={overtime} />
+      {session?.user?.id === overtime?.user_id &&
+      overtime?.status === "pending" ? (
+        <Form overtime={overtime} />
+      ) : (
+        <div>You cannot edit this overtime</div>
+      )}
     </main>
   );
 }
