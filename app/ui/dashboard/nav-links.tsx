@@ -15,7 +15,7 @@ import clsx from "clsx";
 const links = [
   { name: "Home", href: "/dashboard", icon: HomeIcon },
   {
-    name: "Overtimes",
+    name: "Overtime",
     href: "/dashboard/overtime",
     icon: ClockIcon,
   },
