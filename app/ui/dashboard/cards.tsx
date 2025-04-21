@@ -5,7 +5,11 @@ import {
   Squares2X2Icon,
 } from "@heroicons/react/24/outline";
 import { lusitana } from "@/app/ui/fonts";
-import { fetchCardData } from "@/app/lib/data";
+import {
+  fetchMyCardData,
+  fetchMonthlyCardData,
+  fetchYearlyCardData,
+} from "@/app/lib/data";
 import { auth } from "@/auth";
 
 const iconMap = {
@@ -15,7 +19,7 @@ const iconMap = {
   declined: XMarkIcon,
 };
 
-export default async function CardWrapper() {
+export async function MyCardWrapper() {
   const session = await auth();
   const userID = session?.user?.id ? session?.user?.id : "";
 
@@ -24,12 +28,70 @@ export default async function CardWrapper() {
     numberOfPendingOvertimes,
     numberOfConfirmedOvertimes,
     numberOfDeclinedOvertimes,
-  } = await fetchCardData(userID);
+  } = await fetchMyCardData(userID);
 
   return (
     <>
-      {/* NOTE: Uncomment this code in Chapter 9 */}
+      <Card title="Number of Overtimes" value={numberOfOvertimes} type="all" />
+      <Card
+        title="Pending Overtimes"
+        value={numberOfPendingOvertimes}
+        type="pending"
+      />
+      <Card
+        title="Confirmed Overtimes"
+        value={numberOfConfirmedOvertimes}
+        type="confirmed"
+      />
+      <Card
+        title="Declined Overtimes"
+        value={numberOfDeclinedOvertimes}
+        type="declined"
+      />
+    </>
+  );
+}
 
+export async function MonthlyCardWrapper() {
+  const {
+    numberOfOvertimes,
+    numberOfPendingOvertimes,
+    numberOfConfirmedOvertimes,
+    numberOfDeclinedOvertimes,
+  } = await fetchMonthlyCardData();
+
+  return (
+    <>
+      <Card title="Number of Overtimes" value={numberOfOvertimes} type="all" />
+      <Card
+        title="Pending Overtimes"
+        value={numberOfPendingOvertimes}
+        type="pending"
+      />
+      <Card
+        title="Confirmed Overtimes"
+        value={numberOfConfirmedOvertimes}
+        type="confirmed"
+      />
+      <Card
+        title="Declined Overtimes"
+        value={numberOfDeclinedOvertimes}
+        type="declined"
+      />
+    </>
+  );
+}
+
+export async function YearlyCardWrapper() {
+  const {
+    numberOfOvertimes,
+    numberOfPendingOvertimes,
+    numberOfConfirmedOvertimes,
+    numberOfDeclinedOvertimes,
+  } = await fetchYearlyCardData();
+
+  return (
+    <>
       <Card title="Number of Overtimes" value={numberOfOvertimes} type="all" />
       <Card
         title="Pending Overtimes"

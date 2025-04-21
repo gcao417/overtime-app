@@ -6,6 +6,7 @@ import {
   calculateTimeDifferenceInHours,
 } from "@/app/lib/utils";
 import { fetchFilteredOvertimes } from "@/app/lib/data";
+import { auth } from "@/auth";
 
 export default async function OvertimesTable({
   query,
@@ -25,6 +26,9 @@ export default async function OvertimesTable({
     status
   );
 
+  const session = await auth();
+  const approverID = session?.user?.id;
+
   return (
     <div className="mt-6 flow-root">
       <div className="inline-block min-w-full align-middle">
@@ -39,6 +43,20 @@ export default async function OvertimesTable({
                   <div>
                     <div className="mb-2 flex items-center">
                       <p>{overtime?.username}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="mb-2 flex items-center">
+                      <p>
+                        {overtime?.department
+                          ? overtime?.department
+                          : "Default"}
+                      </p>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="mb-2 flex items-center">
+                      <p>{overtime?.type ? overtime?.type : "Regular"}</p>
                     </div>
                   </div>
                   <OvertimeStatus status={overtime?.status} />
@@ -61,6 +79,9 @@ export default async function OvertimesTable({
                       {/* 'hour' will only be visible on small screens */}
                     </p>
                   </div>
+                  <div>
+                    <p>{overtime?.approver_username}</p>
+                  </div>
                   <div className="flex justify-end gap-2">
                     <ConfirmOvertime
                       id={overtime?.id.toString()}
@@ -81,20 +102,29 @@ export default async function OvertimesTable({
                 <th scope="col" className="px-4 py-5 font-medium sm:pl-6">
                   User
                 </th>
+                <th scope="col" className="px-4 py-5 font-medium sm:pl-6">
+                  Department
+                </th>
                 <th scope="col" className="px-3 py-5 font-medium">
-                  creation_timestamp
+                  Created at
+                </th>
+                <th scope="col" className="px-3 py-5 font-medium">
+                  Type
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
                   Status
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
-                  start_time
+                  Start Time
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
-                  end_time
+                  End Time
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
                   Hours
+                </th>
+                <th scope="col" className="px-3 py-5 font-medium">
+                  Approved / Declined by
                 </th>
                 <th scope="col" className="relative py-3 pl-6 pr-3">
                   <span className="sr-only">Edit</span>
@@ -112,8 +142,22 @@ export default async function OvertimesTable({
                       <p>{overtime?.username}</p>
                     </div>
                   </td>
+                  <td className="whitespace-nowrap py-3 pl-6 pr-3">
+                    <div className="flex items-center gap-3">
+                      <p>
+                        {overtime?.department
+                          ? overtime?.department
+                          : "Default"}
+                      </p>
+                    </div>
+                  </td>
                   <td className="whitespace-nowrap px-3 py-3">
                     {formatDateToLocal(overtime?.creation_timestamp)}
+                  </td>
+                  <td className="whitespace-nowrap py-3 pl-6 pr-3">
+                    <div className="flex items-center gap-3">
+                      <p>{overtime?.type ? overtime?.type : "Regular"}</p>
+                    </div>
                   </td>
                   <td className="whitespace-nowrap px-3 py-3">
                     <OvertimeStatus status={overtime?.status} />
@@ -133,14 +177,21 @@ export default async function OvertimesTable({
                     )}
                   </td>
                   <td className="whitespace-nowrap py-3 pl-6 pr-3">
+                    <div className="flex items-center gap-3">
+                      <p>{overtime?.approver_username}</p>
+                    </div>
+                  </td>
+                  <td className="whitespace-nowrap py-3 pl-6 pr-3">
                     <div className="flex justify-end gap-3">
                       <ConfirmOvertime
                         id={overtime?.id.toString()}
                         status={overtime?.status}
+                        approverID={approverID}
                       />
                       <DeclineOvertime
                         id={overtime?.id.toString()}
                         status={overtime?.status}
+                        approverID={approverID}
                       />
                     </div>
                   </td>

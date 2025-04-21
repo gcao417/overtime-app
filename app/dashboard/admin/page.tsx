@@ -1,8 +1,9 @@
 import Table from "@/app/ui/admin/table";
 import { lusitana } from "@/app/ui/fonts";
-import { fetchUsers } from "@/app/lib/data";
+import { fetchDepartments, fetchUsers } from "@/app/lib/data";
 import { auth } from "@/auth";
 import UserForm from "@/app/ui/admin/create-user-form";
+import DepartmentForm from "@/app/ui/admin/create-department-form";
 
 export default async function Page() {
   const session = await auth();
@@ -12,6 +13,8 @@ export default async function Page() {
   const otherUsers = users.filter((user) =>
     user?.id !== session?.user?.id ? session?.user?.id : ""
   );
+
+  const [departments] = await Promise.all([fetchDepartments()]);
 
   return (
     <div className="w-full">
@@ -26,8 +29,10 @@ export default async function Page() {
           </div>
           <div className="md:mt-8">Create User</div>
           <UserForm />
+          <div className="md:mt-8">Departments</div>
+          <DepartmentForm departments={departments} />
           <div className="md:mt-8">Edit Users</div>
-          <Table otherUsers={otherUsers} />
+          <Table otherUsers={otherUsers} departments={departments} />
         </div>
       )}
     </div>

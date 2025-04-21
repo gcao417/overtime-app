@@ -24,6 +24,7 @@ export default function EditOvertimeForm({
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [startTime, setStartTime] = useState<string>("");
   const [endTime, setEndTime] = useState<string>("");
+  const [overtimeType, setOvertimeType] = useState<string>("Regular");
 
   useEffect(() => {
     if (overtime) {
@@ -39,6 +40,8 @@ export default function EditOvertimeForm({
       const endHours = endDate.getHours().toString().padStart(2, "0");
       const endMinutes = endDate.getMinutes().toString().padStart(2, "0");
       setEndTime(`${endHours}:${endMinutes}`);
+
+      setOvertimeType(overtime?.type || "Regular");
     }
   }, [overtime]);
 
@@ -52,6 +55,12 @@ export default function EditOvertimeForm({
 
   const handleEndTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEndTime(e.target.value);
+  };
+
+  const handleOvertimeTypeChange = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    setOvertimeType(e.target.value);
   };
 
   const formattedDate = selectedDate
@@ -151,6 +160,35 @@ export default function EditOvertimeForm({
                 </p>
               ))}
           </div>
+        </div>
+
+        {/* Overtime Type */}
+        <div className="mb-4">
+          <label
+            htmlFor="overtime-type"
+            className="mb-2 block text-sm font-medium"
+          >
+            Overtime Type
+          </label>
+          <div className="relative mt-2 rounded-md">
+            <select
+              id="overtime-type"
+              name="overtimeType"
+              value={overtimeType}
+              onChange={handleOvertimeTypeChange}
+              className="w-full p-2 border rounded-md"
+            >
+              <option value="Regular">Regular</option>
+              <option value="Weekend">Weekend</option>
+              <option value="Public Holiday">Public Holiday</option>
+            </select>
+          </div>
+
+          {state.errors?.overtimeType && (
+            <p className="mt-2 text-sm text-red-500">
+              {state.errors.overtimeType[0]}
+            </p>
+          )}
         </div>
 
         {/* Message */}

@@ -78,45 +78,73 @@ export function DeclinedOvertimes({ select }: { select: boolean }) {
 export function ConfirmOvertime({
   id,
   status,
+  approverID,
 }: {
   id: string;
   status: string;
+  approverID: string;
 }) {
-  const confirmOvertimeWithId = confirmOvertime.bind(null, id);
-  return status === "confirmed" ? (
-    <div className="rounded-md border p-2 bg-green-100">
-      <span className="sr-only">Confirm</span>
-      <CheckIcon className="w-5" />
-    </div>
-  ) : (
-    <form action={confirmOvertimeWithId}>
-      <button className="rounded-md border p-2 hover:bg-green-300">
-        <span className="sr-only">Confirm</span>
-        <CheckIcon className="w-5" />
-      </button>
-    </form>
-  );
+  const confirmOvertimeWithId = confirmOvertime.bind(null, id, approverID);
+  switch (status) {
+    case "confirmed":
+      return (
+        <div className="rounded-md border p-2 bg-green-100">
+          <span className="sr-only">Confirm</span>
+          <CheckIcon className="w-5" />
+        </div>
+      );
+    case "declined":
+      return (
+        <div className="rounded-md border p-2">
+          <span className="sr-only">Confirm</span>
+          <CheckIcon className="w-5" />
+        </div>
+      );
+    default:
+      return (
+        <form action={confirmOvertimeWithId}>
+          <button className="rounded-md border p-2 hover:bg-green-300">
+            <span className="sr-only">Confirm</span>
+            <CheckIcon className="w-5" />
+          </button>
+        </form>
+      );
+  }
 }
 
 export function DeclineOvertime({
   id,
   status,
+  approverID,
 }: {
   id: string;
   status: string;
+  approverID: string;
 }) {
-  const declineOvertimeWithId = declineOvertime.bind(null, id);
-  return status === "declined" ? (
-    <div className="rounded-md border p-2 bg-red-100">
-      <span className="sr-only">Delete</span>
-      <XMarkIcon className="w-5" />
-    </div>
-  ) : (
-    <form action={declineOvertimeWithId}>
-      <button className="rounded-md border p-2 hover:bg-red-300">
-        <span className="sr-only">Delete</span>
-        <XMarkIcon className="w-5" />
-      </button>
-    </form>
-  );
+  const declineOvertimeWithId = declineOvertime.bind(null, id, approverID);
+  switch (status) {
+    case "confirmed":
+      return (
+        <div className="rounded-md border p-2">
+          <span className="sr-only">Delete</span>
+          <XMarkIcon className="w-5" />
+        </div>
+      );
+    case "declined":
+      return (
+        <div className="rounded-md border p-2 bg-red-100">
+          <span className="sr-only">Delete</span>
+          <XMarkIcon className="w-5" />
+        </div>
+      );
+    default:
+      return (
+        <form action={declineOvertimeWithId}>
+          <button className="rounded-md border p-2 hover:bg-red-300">
+            <span className="sr-only">Delete</span>
+            <XMarkIcon className="w-5" />
+          </button>
+        </form>
+      );
+  }
 }

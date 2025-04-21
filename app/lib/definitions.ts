@@ -93,6 +93,7 @@ export type OvertimeForm = {
   start_time: string;
   end_time: string;
   status: "pending" | "paid";
+  type: string;
 };
 
 export type OvertimeTable = {
@@ -104,4 +105,5 @@ export type OvertimeTable = {
   start_time: string;
   end_time: string;
   status: string;
+  type: string;
 };

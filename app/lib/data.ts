@@ -48,15 +48,15 @@ export async function fetchLatestInvoices() {
   }
 }
 
-export async function fetchCardData(userID: string) {
+export async function fetchMyCardData(userID: string) {
   try {
     // You can probably combine these into a single SQL query
     // However, we are intentionally splitting them to demonstrate
     // how to initialize multiple queries in parallel with JS.
-    const overtimeCountPromise = sql`SELECT COUNT(*) FROM overtime WHERE user_id=${userID}`;
-    const pendingOvertimeCountPromise = sql`SELECT COUNT(*) FROM overtime WHERE status='pending' AND user_id=${userID}`;
-    const confirmedOvertimeCountPromise = sql`SELECT COUNT(*) FROM overtime WHERE status='confirmed' AND user_id=${userID}`;
-    const declinedOvertimeCountPromise = sql`SELECT COUNT(*) FROM overtime WHERE status='declined' AND user_id=${userID}`;
+    const overtimeCountPromise = sql`SELECT COUNT(*) FROM overtime JOIN users ON overtime.user_id = users.id WHERE user_id=${userID}`;
+    const pendingOvertimeCountPromise = sql`SELECT COUNT(*) FROM overtime JOIN users ON overtime.user_id = users.id WHERE status='pending' AND user_id=${userID}`;
+    const confirmedOvertimeCountPromise = sql`SELECT COUNT(*) FROM overtime JOIN users ON overtime.user_id = users.id WHERE status='confirmed' AND user_id=${userID}`;
+    const declinedOvertimeCountPromise = sql`SELECT COUNT(*) FROM overtime JOIN users ON overtime.user_id = users.id WHERE status='declined' AND user_id=${userID}`;
 
     const data = await Promise.all([
       overtimeCountPromise,
@@ -78,7 +78,97 @@ export async function fetchCardData(userID: string) {
     };
   } catch (error) {
     console.error("Database Error:", error);
-    throw new Error("Failed to fetch card data.");
+    throw new Error("Failed to fetch my card data.");
+  }
+}
+
+export async function fetchMonthlyCardData() {
+  try {
+    const overtimeCountPromise = sql`SELECT COUNT(*) FROM overtime JOIN users ON overtime.user_id = users.id WHERE start_time >= NOW() - INTERVAL '1 month'`;
+    const pendingOvertimeCountPromise = sql`SELECT COUNT(*) FROM overtime JOIN users ON overtime.user_id = users.id WHERE status='pending' AND start_time >= NOW() - INTERVAL '1 month'`;
+    const confirmedOvertimeCountPromise = sql`SELECT COUNT(*) FROM overtime JOIN users ON overtime.user_id = users.id WHERE status='confirmed' AND start_time >= NOW() - INTERVAL '1 month'`;
+    const declinedOvertimeCountPromise = sql`SELECT COUNT(*) FROM overtime JOIN users ON overtime.user_id = users.id WHERE status='declined' AND start_time >= NOW() - INTERVAL '1 month'`;
+
+    const data = await Promise.all([
+      overtimeCountPromise,
+      pendingOvertimeCountPromise,
+      confirmedOvertimeCountPromise,
+      declinedOvertimeCountPromise,
+    ]);
+
+    const numberOfOvertimes = Number(data[0].rows[0].count ?? "0");
+    const numberOfPendingOvertimes = Number(data[1].rows[0].count ?? "0");
+    const numberOfConfirmedOvertimes = Number(data[2].rows[0].count ?? "0");
+    const numberOfDeclinedOvertimes = Number(data[3].rows[0].count ?? "0");
+
+    return {
+      numberOfOvertimes,
+      numberOfPendingOvertimes,
+      numberOfConfirmedOvertimes,
+      numberOfDeclinedOvertimes,
+    };
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to fetch monthly card data.");
+  }
+}
+
+export async function fetchYearlyCardData() {
+  try {
+    const overtimeCountPromise = sql`SELECT COUNT(*) FROM overtime JOIN users ON overtime.user_id = users.id WHERE start_time >= NOW() - INTERVAL '1 year'`;
+    const pendingOvertimeCountPromise = sql`SELECT COUNT(*) FROM overtime JOIN users ON overtime.user_id = users.id WHERE status='pending' AND start_time >= NOW() - INTERVAL '1 year'`;
+    const confirmedOvertimeCountPromise = sql`SELECT COUNT(*) FROM overtime JOIN users ON overtime.user_id = users.id WHERE status='confirmed' AND start_time >= NOW() - INTERVAL '1 year'`;
+    const declinedOvertimeCountPromise = sql`SELECT COUNT(*) FROM overtime JOIN users ON overtime.user_id = users.id WHERE status='declined' AND start_time >= NOW() - INTERVAL '1 year'`;
+
+    const data = await Promise.all([
+      overtimeCountPromise,
+      pendingOvertimeCountPromise,
+      confirmedOvertimeCountPromise,
+      declinedOvertimeCountPromise,
+    ]);
+
+    const numberOfOvertimes = Number(data[0].rows[0].count ?? "0");
+    const numberOfPendingOvertimes = Number(data[1].rows[0].count ?? "0");
+    const numberOfConfirmedOvertimes = Number(data[2].rows[0].count ?? "0");
+    const numberOfDeclinedOvertimes = Number(data[3].rows[0].count ?? "0");
+
+    return {
+      numberOfOvertimes,
+      numberOfPendingOvertimes,
+      numberOfConfirmedOvertimes,
+      numberOfDeclinedOvertimes,
+    };
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to fetch yearly card data.");
+  }
+}
+
+export async function fetchAllData() {
+  try {
+    const data = await sql`
+        SELECT
+          users.name as username,
+          users.department,
+          overtime.creation_timestamp,
+          overtime.type,
+          overtime.status,
+          overtime.start_time,
+          overtime.end_time,
+          approver_users.name AS approver_username
+        FROM overtime
+        JOIN users ON overtime.user_id = users.id
+        LEFT JOIN users AS approver_users ON overtime.approver_id = approver_users.id
+    `;
+
+    const overtime = data.rows.map((overtime) => ({
+      ...overtime,
+    }));
+
+    return overtime;
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to fetch overtime databse.");
   }
 }
 
@@ -100,12 +190,17 @@ export async function fetchFilteredOvertimes(
           overtime.id,
           overtime.user_id,
           users.name as username,
+          users.department,
           overtime.creation_timestamp,
           overtime.start_time,
           overtime.end_time,
-          overtime.status
+          overtime.status,
+          overtime.approver_id,
+          approver_users.name AS approver_username,
+          overtime.type
         FROM overtime
         JOIN users ON overtime.user_id = users.id
+        LEFT JOIN users AS approver_users ON overtime.approver_id = approver_users.id
         WHERE overtime.status = ${status}
         ORDER BY overtime.creation_timestamp DESC
         LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
@@ -115,12 +210,17 @@ export async function fetchFilteredOvertimes(
           overtime.id,
           overtime.user_id,
           users.name as username,
+          users.department,
           overtime.creation_timestamp,
           overtime.start_time,
           overtime.end_time,
-          overtime.status
+          overtime.status,
+          overtime.approver_id,
+          approver_users.name AS approver_username,
+          overtime.type
         FROM overtime
         JOIN users ON overtime.user_id = users.id
+        LEFT JOIN users AS approver_users ON overtime.approver_id = approver_users.id
         ORDER BY overtime.creation_timestamp DESC
         LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
       `
@@ -130,12 +230,17 @@ export async function fetchFilteredOvertimes(
           overtime.id,
           overtime.user_id,
           users.name as username,
+          users.department,
           overtime.creation_timestamp,
           overtime.start_time,
           overtime.end_time,
-          overtime.status
+          overtime.status,
+          overtime.approver_id,
+          approver_users.name AS approver_username,
+          overtime.type
         FROM overtime
         JOIN users ON overtime.user_id = users.id
+        LEFT JOIN users AS approver_users ON overtime.approver_id = approver_users.id
         WHERE overtime.user_id = ${userID}
         AND overtime.status = ${status}
         ORDER BY overtime.creation_timestamp DESC
@@ -146,12 +251,17 @@ export async function fetchFilteredOvertimes(
           overtime.id,
           overtime.user_id,
           users.name as username,
+          users.department,
           overtime.creation_timestamp,
           overtime.start_time,
           overtime.end_time,
-          overtime.status
+          overtime.status,
+          overtime.approver_id,
+          approver_users.name AS approver_username,
+          overtime.type
         FROM overtime
         JOIN users ON overtime.user_id = users.id
+        LEFT JOIN users AS approver_users ON overtime.approver_id = approver_users.id
         WHERE overtime.user_id = ${userID}
         ORDER BY overtime.creation_timestamp DESC
         LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
@@ -175,19 +285,23 @@ export async function fetchOvertimePages(
         ? status
           ? await sql`SELECT COUNT(*)
         FROM overtime
+        JOIN users ON overtime.user_id = users.id
         WHERE overtime.status = ${status}
         `
           : await sql`SELECT COUNT(*)
           FROM overtime
+          JOIN users ON overtime.user_id = users.id
           `
         : status
         ? await sql`SELECT COUNT(*)
         FROM overtime
+        JOIN users ON overtime.user_id = users.id
         WHERE overtime.user_id = ${userID}
         AND overtime.status = ${status}
         `
         : await sql`SELECT COUNT(*)
           FROM overtime
+          JOIN users ON overtime.user_id = users.id
           WHERE overtime.user_id = ${userID}
           `;
 
@@ -208,7 +322,9 @@ export async function fetchOvertimeById(id: string) {
         overtime.creation_timestamp,
         overtime.start_time,
         overtime.end_time,
-        overtime.status
+        overtime.status,
+        overtime.approver_id,
+        overtime.type
       FROM overtime
       WHERE overtime.id = ${id};
     `;
@@ -220,7 +336,7 @@ export async function fetchOvertimeById(id: string) {
     return overtime[0];
   } catch (error) {
     console.error("Database Error:", error);
-    throw new Error("Failed to fetch invoice.");
+    throw new Error("Failed to fetch overtime by ID.");
   }
 }
 
@@ -270,5 +386,20 @@ export async function fetchFilteredCustomers(query: string) {
   } catch (err) {
     console.error("Database Error:", err);
     throw new Error("Failed to fetch customer table.");
+  }
+}
+
+export async function fetchDepartments() {
+  try {
+    const data = await sql<UserField>`
+      SELECT *
+      FROM departments
+      ORDER BY name ASC
+    `;
+
+    return data.rows;
+  } catch (err) {
+    console.error("Database Error:", err);
+    throw new Error("Failed to fetch all departments.");
   }
 }

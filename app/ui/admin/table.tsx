@@ -1,3 +1,6 @@
+"use client";
+
+import { updateUserDepartment } from "@/app/lib/actions";
 import { DeleteUser, ToggleUserRole } from "@/app/ui/admin/buttons";
 
 type User = {
@@ -5,9 +8,21 @@ type User = {
   name: string;
   email: string;
   role: string;
+  department: string;
 };
 
-export default function UsersTable({ otherUsers }: { otherUsers: User[] }) {
+type Department = {
+  id: string;
+  name: string;
+};
+
+export default function UsersTable({
+  otherUsers,
+  departments,
+}: {
+  otherUsers: User[];
+  departments: Department[];
+}) {
   return (
     <div className="mt-6 flow-root">
       <div className="inline-block min-w-full align-middle">
@@ -20,21 +35,37 @@ export default function UsersTable({ otherUsers }: { otherUsers: User[] }) {
                 className="mb-2 w-full rounded-md bg-white p-4"
               >
                 <div className="flex items-center justify-between border-b pb-4">
+                  {/* Role toggle between user and admin */}
                   <div>
                     <div className="mb-2 flex items-center">
-                      {/* Truncate Name */}
                       <p className="truncate max-w-xs">{user.name}</p>
                     </div>
-                    {/* Truncate Email */}
                     <p className="truncate max-w-xs">{user.email}</p>
                     <div className="flex items-center gap-4">
                       {" "}
-                      {/* Increased gap */}
                       <p>{user.role}</p>
                       <ToggleUserRole id={user.id} role={user.role} />
                     </div>
                   </div>
-                  {/* Actions */}
+                  {/* Department */}
+                  <select
+                    id="department"
+                    name="department"
+                    value={user.department}
+                    onChange={(e) => {
+                      const newDepartment = e.target.value;
+                      updateUserDepartment(user.id, newDepartment);
+                    }}
+                    className="peer block w-full rounded-md border border-gray-200 py-2 text-sm outline-2 placeholder:text-gray-500"
+                    aria-describedby="department-error"
+                  >
+                    {departments?.map((department) => (
+                      <option value={department?.name}>
+                        {department?.name}
+                      </option>
+                    ))}
+                  </select>
+                  {/* Delete */}
                   <div className="flex justify-end gap-2">
                     <DeleteUser id={user.id} />
                   </div>
@@ -56,6 +87,9 @@ export default function UsersTable({ otherUsers }: { otherUsers: User[] }) {
                 <th scope="col" className="px-3 py-5 font-medium">
                   Role
                 </th>
+                <th scope="col" className="px-3 py-5 font-medium">
+                  Department
+                </th>
                 <th scope="col" className="relative py-3 pl-6 pr-3">
                   <span className="sr-only">Actions</span>
                 </th>
@@ -69,20 +103,39 @@ export default function UsersTable({ otherUsers }: { otherUsers: User[] }) {
                 >
                   <td className="whitespace-nowrap py-3 pl-6 pr-3">
                     <div className="flex items-center gap-3">
-                      {/* Truncate Name */}
                       <p className="truncate max-w-xs">{user.name}</p>
                     </div>
                   </td>
                   <td className="whitespace-nowrap px-3 py-3">
-                    {/* Truncate Email */}
                     <p className="truncate max-w-xs">{user.email}</p>
                   </td>
                   <td className="whitespace-nowrap px-3 py-3">
                     <div className="flex items-center gap-4">
                       {" "}
-                      {/* Increased gap */}
                       <p>{user.role}</p>
                       <ToggleUserRole id={user.id} role={user.role} />
+                    </div>
+                  </td>
+                  <td className="whitespace-nowrap px-3 py-3">
+                    <div className="flex items-center gap-4">
+                      {" "}
+                      <select
+                        id="department"
+                        name="department"
+                        value={user.department}
+                        onChange={(e) => {
+                          const newDepartment = e.target.value;
+                          updateUserDepartment(user.id, newDepartment);
+                        }}
+                        className="peer block w-full rounded-md border border-gray-200 py-2 text-sm outline-2 placeholder:text-gray-500"
+                        aria-describedby="department-error"
+                      >
+                        {departments?.map((department) => (
+                          <option value={department?.name}>
+                            {department?.name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </td>
                   <td className="whitespace-nowrap py-3 pl-6 pr-3">

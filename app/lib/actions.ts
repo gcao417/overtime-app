@@ -21,6 +21,9 @@ const FormSchema = z.object({
   endTime: z.string({
     invalid_type_error: "Please select an end time.",
   }),
+  overtimeType: z.string({
+    invalid_type_error: "Please select an overtime type.",
+  }),
 });
 
 const UserFormSchema = z.object({
@@ -28,6 +31,10 @@ const UserFormSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be 6 or more characters long"),
   role: z.enum(["user", "admin"]),
+});
+
+const DepartmentSchema = z.object({
+  name: z.string().min(1, { message: "Department name is required." }),
 });
 
 export type UserFormState = {
@@ -38,6 +45,13 @@ export type UserFormState = {
     role?: string[];
   };
   message?: string | null;
+};
+
+export type DepartmentFormState = {
+  message: string | null;
+  errors: {
+    name?: string[];
+  };
 };
 
 export type State = {
@@ -56,6 +70,9 @@ export async function createOvertime(prevState: State, formData: FormData) {
     date: formData.get("date") ? formData.get("date") : 0,
     startTime: formData.get("startTime") ? formData.get("startTime") : 0,
     endTime: formData.get("endTime") ? formData.get("endTime") : 0,
+    overtimeType: formData.get("overtimeType")
+      ? formData.get("overtimeType")
+      : 0,
   });
 
   if (!validatedFields.success) {
@@ -65,7 +82,8 @@ export async function createOvertime(prevState: State, formData: FormData) {
     };
   }
 
-  const { userId, date, startTime, endTime } = validatedFields.data;
+  const { userId, date, startTime, endTime, overtimeType } =
+    validatedFields.data;
 
   const startMinutes =
     parseInt(startTime.split(":")[0]) * 60 + parseInt(startTime.split(":")[1]);
@@ -83,8 +101,8 @@ export async function createOvertime(prevState: State, formData: FormData) {
 
   try {
     await sql`
-    INSERT INTO overtime (user_id, start_time, end_time)
-    VALUES (${userId}, ${startDateTime}, ${endDateTime})
+    INSERT INTO overtime (user_id, start_time, end_time, type)
+    VALUES (${userId}, ${startDateTime}, ${endDateTime}, ${overtimeType})
     `;
   } catch (error) {
     console.log(error);
@@ -101,6 +119,7 @@ const UpdateOvertime = z.object({
   date: z.string(),
   startTime: z.string(),
   endTime: z.string(),
+  overtimeType: z.string(),
 });
 
 export async function updateOvertime(
@@ -112,6 +131,7 @@ export async function updateOvertime(
     date: formData.get("date"),
     startTime: formData.get("startTime"),
     endTime: formData.get("endTime"),
+    overtimeType: formData.get("overtimeType"),
   });
 
   if (!validatedFields.success) {
@@ -121,7 +141,7 @@ export async function updateOvertime(
     };
   }
 
-  const { date, startTime, endTime } = validatedFields.data;
+  const { date, startTime, endTime, overtimeType } = validatedFields.data;
 
   const startMinutes =
     parseInt(startTime.split(":")[0]) * 60 + parseInt(startTime.split(":")[1]);
@@ -140,7 +160,7 @@ export async function updateOvertime(
   try {
     await sql`
       UPDATE overtime
-      SET start_time = ${startDateTime}, end_time = ${endDateTime}
+      SET start_time = ${startDateTime}, end_time = ${endDateTime}, type = ${overtimeType}
       WHERE id = ${id}
     `;
   } catch (error) {
@@ -167,9 +187,16 @@ export async function deleteOvertime(id: string) {
   }
 }
 
-export async function confirmOvertime(id: string) {
+export async function confirmOvertime(id: string, approverID: string) {
   try {
-    await sql`UPDATE overtime SET status = 'confirmed' WHERE id = ${id}`;
+    if (!approverID) {
+      console.log(approverID);
+      return {
+        message: "Database Error: Failed to Get Approver ID.",
+      };
+    }
+
+    await sql`UPDATE overtime SET status = 'confirmed', approver_id = ${approverID} WHERE id = ${id}`;
     revalidatePath("/dashboard/approval");
     return { message: "Confirmed Overtime." };
   } catch (error) {
@@ -180,9 +207,15 @@ export async function confirmOvertime(id: string) {
   }
 }
 
-export async function declineOvertime(id: string) {
+export async function declineOvertime(id: string, approverID: string) {
   try {
-    await sql`UPDATE overtime SET status = 'declined' WHERE id = ${id}`;
+    if (!approverID) {
+      console.log(approverID);
+      return {
+        message: "Database Error: Failed to Get Approver ID.",
+      };
+    }
+    await sql`UPDATE overtime SET status = 'declined', approver_id = ${approverID} WHERE id = ${id}`;
     revalidatePath("/dashboard/approval");
     return { message: "Declined Overtime." };
   } catch (error) {
@@ -291,5 +324,82 @@ export async function authenticate(
       }
     }
     throw error;
+  }
+}
+
+export async function updateUserDepartment(
+  user_id: string,
+  department: string
+) {
+  try {
+    await sql`UPDATE users
+    SET department = ${department}
+    WHERE id = ${user_id}`;
+
+    revalidatePath("/dashboard/admin");
+
+    return { message: "Updated User Department." };
+  } catch (error) {
+    console.log(error);
+    return {
+      message: "Database Error: Failed to Update User Department.",
+    };
+  }
+}
+
+export async function createDepartment(
+  prevState: DepartmentFormState,
+  formData: FormData
+): Promise<DepartmentFormState> {
+  const validatedFields = DepartmentSchema.safeParse({
+    name: formData.get("name"),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: "Missing or invalid field(s). Failed to create department.",
+    };
+  }
+
+  const { name } = validatedFields.data;
+
+  try {
+    await sql`
+      INSERT INTO departments (name)
+      VALUES (${name});
+    `;
+  } catch (error: any) {
+    console.error("Error creating department:", error);
+    if (error?.code === "23505") {
+      return {
+        errors: {
+          name: ["This department name already exists."],
+        },
+        message: "Duplicate department name.",
+      };
+    }
+
+    return {
+      message: "Database Error: Failed to create department.",
+      errors: {},
+    };
+  }
+
+  revalidatePath("/dashboard/admin");
+
+  return { message: "Department created successfully!", errors: {} };
+}
+
+export async function deleteDepartment(id: string) {
+  try {
+    await sql`DELETE FROM departments WHERE id = ${id}`;
+    revalidatePath("/dashboard/admin");
+    return { message: "Deleted Department." };
+  } catch (error) {
+    console.log(error);
+    return {
+      message: "Database Error: Failed to Delete Department.",
+    };
   }
 }

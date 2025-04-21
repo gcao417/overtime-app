@@ -17,6 +17,7 @@ export function CreateOvertimeForm({ userId }: { userId: string }) {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [startTime, setStartTime] = useState<string>("");
   const [endTime, setEndTime] = useState<string>("");
+  const [overtimeType, setOvertimeType] = useState<string>("Regular");
 
   const handleDateChange = (date: Date | undefined) => {
     setSelectedDate(date);
@@ -28,6 +29,12 @@ export function CreateOvertimeForm({ userId }: { userId: string }) {
 
   const handleEndTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEndTime(e.target.value);
+  };
+
+  const handleOvertimeTypeChange = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    setOvertimeType(e.target.value); // Update overtime type state
   };
 
   const formattedDate = selectedDate
@@ -94,6 +101,27 @@ export function CreateOvertimeForm({ userId }: { userId: string }) {
               <p className="text-sm text-red-500">{state.errors.endTime[0]}</p>
             )}
           </div>
+        </div>
+
+        <div>
+          <Label htmlFor="overtime-type">Overtime Type</Label>
+          <select
+            id="overtime-type"
+            name="overtimeType"
+            value={overtimeType}
+            onChange={handleOvertimeTypeChange}
+            className="w-full p-2 border rounded-md"
+          >
+            <option value="Regular">Regular</option>
+            <option value="Weekend">Weekend</option>
+            <option value="Public Holiday">Public Holiday</option>
+          </select>
+
+          {state.errors?.overtimeType && (
+            <p className="text-sm text-red-500">
+              {state.errors.overtimeType[0]}
+            </p>
+          )}
         </div>
 
         {state.message && (

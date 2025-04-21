@@ -39,6 +39,20 @@ export default async function OvertimesTable({
                       <p>{overtime?.username}</p>
                     </div>
                   </div>
+                  <div>
+                    <div className="mb-2 flex items-center">
+                      <p>
+                        {overtime?.department
+                          ? overtime?.department
+                          : "Default"}
+                      </p>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="mb-2 flex items-center">
+                      <p>{overtime?.type ? overtime?.type : "Regular"}</p>
+                    </div>
+                  </div>
                   <OvertimeStatus status={overtime?.status} />
                 </div>
                 <div className="flex w-full items-center justify-between pt-4">
@@ -65,6 +79,9 @@ export default async function OvertimesTable({
                     ) : null}
                     <DeleteOvertime id={overtime?.id.toString()} />
                   </div>
+                  <div>
+                    <p>{overtime?.approver_username}</p>
+                  </div>
                 </div>
               </div>
             ))}
@@ -75,20 +92,29 @@ export default async function OvertimesTable({
                 <th scope="col" className="px-4 py-5 font-medium sm:pl-6">
                   User
                 </th>
+                <th scope="col" className="px-4 py-5 font-medium sm:pl-6">
+                  Department
+                </th>
                 <th scope="col" className="px-3 py-5 font-medium">
-                  creation_timestamp
+                  Created at
+                </th>
+                <th scope="col" className="px-3 py-5 font-medium">
+                  Type
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
                   Status
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
-                  start_time
+                  Start Time
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
-                  end_time
+                  End Time
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
                   Hours
+                </th>
+                <th scope="col" className="px-3 py-5 font-medium">
+                  Approved / Declined by
                 </th>
                 <th scope="col" className="relative py-3 pl-6 pr-3">
                   <span className="sr-only">Edit</span>
@@ -106,8 +132,22 @@ export default async function OvertimesTable({
                       <p>{overtime?.username}</p>
                     </div>
                   </td>
+                  <td className="whitespace-nowrap py-3 pl-6 pr-3">
+                    <div className="flex items-center gap-3">
+                      <p>
+                        {overtime?.department
+                          ? overtime?.department
+                          : "Default"}
+                      </p>
+                    </div>
+                  </td>
                   <td className="whitespace-nowrap px-3 py-3">
                     {formatDateToLocal(overtime?.creation_timestamp)}
+                  </td>
+                  <td className="whitespace-nowrap py-3 pl-6 pr-3">
+                    <div className="flex items-center gap-3">
+                      <p>{overtime?.type ? overtime?.type : "Regular"}</p>
+                    </div>
                   </td>
                   <td className="whitespace-nowrap px-3 py-3">
                     <OvertimeStatus status={overtime?.status} />
@@ -125,6 +165,11 @@ export default async function OvertimesTable({
                         overtime?.end_time
                       )
                     )}
+                  </td>
+                  <td className="whitespace-nowrap py-3 pl-6 pr-3">
+                    <div className="flex items-center gap-3">
+                      <p>{overtime?.approver_username}</p>
+                    </div>
                   </td>
                   <td className="whitespace-nowrap py-3 pl-6 pr-3">
                     <div className="flex justify-end gap-3">

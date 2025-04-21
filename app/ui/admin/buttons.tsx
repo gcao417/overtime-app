@@ -1,5 +1,9 @@
 import { TrashIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
-import { deleteUser, toggleUserRole } from "@/app/lib/actions";
+import {
+  deleteDepartment,
+  deleteUser,
+  toggleUserRole,
+} from "@/app/lib/actions";
 
 export function ToggleUserRole({ id, role }: { id: string; role: string }) {
   const toggleUserRoleWithId = toggleUserRole.bind(null, id, role);
@@ -27,6 +31,18 @@ export function DeleteUser({ id }: { id: string }) {
   return (
     <form action={deleteUserWithId}>
       <button className="rounded-md border p-2 hover:bg-red-300">
+        <span className="sr-only">Delete</span>
+        <TrashIcon className="w-5" />
+      </button>
+    </form>
+  );
+}
+
+export function DeleteDepartment({ id }: { id: string }) {
+  const deleteDepartmentWithId = deleteDepartment.bind(null, id);
+  return (
+    <form action={deleteDepartmentWithId}>
+      <button>
         <span className="sr-only">Delete</span>
         <TrashIcon className="w-5" />
       </button>
