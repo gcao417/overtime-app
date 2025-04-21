@@ -86,10 +86,12 @@ export default async function OvertimesTable({
                     <ConfirmOvertime
                       id={overtime?.id.toString()}
                       status={overtime?.status}
+                      approverID={approverID ?? ""}
                     />
                     <DeclineOvertime
                       id={overtime?.id.toString()}
                       status={overtime?.status}
+                      approverID={approverID ?? ""}
                     />
                   </div>
                 </div>
@@ -186,12 +188,12 @@ export default async function OvertimesTable({
                       <ConfirmOvertime
                         id={overtime?.id.toString()}
                         status={overtime?.status}
-                        approverID={approverID}
+                        approverID={approverID ?? ""}
                       />
                       <DeclineOvertime
                         id={overtime?.id.toString()}
                         status={overtime?.status}
-                        approverID={approverID}
+                        approverID={approverID ?? ""}
                       />
                     </div>
                   </td>

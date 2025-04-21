@@ -84,6 +84,7 @@ export type UserField = {
   name: string;
   email: string;
   role: string;
+  department: string;
 };
 
 export type OvertimeForm = {
@@ -106,4 +107,6 @@ export type OvertimeTable = {
   end_time: string;
   status: string;
   type: string;
+  department: string;
+  approver_username: string;
 };

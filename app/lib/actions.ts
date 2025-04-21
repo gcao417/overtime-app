@@ -60,6 +60,7 @@ export type State = {
     date?: string[];
     startTime?: string[];
     endTime?: string[];
+    overtimeType?: string[];
   };
   message?: string | null;
 };
