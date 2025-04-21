@@ -36,11 +36,6 @@ export default async function Page() {
               <YearlyCardWrapper />
             </Suspense>
           </div>
-
-          {/* not working
-          <a href="/api/dashboard/overtime-export" download>
-            <button>Download Overtime Excel</button>
-          </a> */}
         </>
       ) : (
         <></>
